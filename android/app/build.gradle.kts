@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.flutternote.app"
+    namespace = "com.note.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
