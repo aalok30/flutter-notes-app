@@ -136,8 +136,11 @@ class _SignupPageState extends State<SignupPage> {
                   //  context.router.replace(const HomeRoute());
                 }
               } on FirebaseAuthException catch (e) {
+                debugPrint("FirebaseAuthException");
+                debugPrint("code: ${e.code}");
+                debugPrint("message: ${e.message}");
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(e.message ?? "Signup failed")),
+                  SnackBar(content: Text(e.message ?? e.code)),
                 );
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
