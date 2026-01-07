@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,38 +10,41 @@ import 'package:flutter_note_app/router/app_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'Widget/custom_error_widget.dart';
 import 'core/locator.dart';
+import 'firebase_options.dart';
 
 Future<void> main() async {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+      }
+
       await setupLocator();
       await locator.isReady<AppDB>();
 
-      // set error builder widget
       ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
         return CustomErrorWidget(errorDetails: errorDetails);
       };
 
-      /// Disable debugPrint logs in production
       if (kReleaseMode) {
         debugPrint = (String? message, {int? wrapWidth}) {};
       }
 
-      // initialize firebase app
-      //await Firebase.initializeApp();
-
-      // Fixing App Orientation.
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,
         DeviceOrientation.portraitDown,
-      ]).then((value) => runApp(MyApp(appRouter: locator<AppRouter>())));
+      ]).then(
+        (value) => runApp(MyApp(appRouter: locator<AppRouter>())),
+      );
     },
-    (error, stack) => (Object error, StackTrace stackTrace) {
+    (error, stack) {
       if (!kReleaseMode) {
         debugPrint('[Error]: $error');
-        debugPrint('[Stacktrace]: $stackTrace');
+        debugPrint('[Stacktrace]: $stack');
       }
     },
   );

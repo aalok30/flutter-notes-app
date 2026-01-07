@@ -1,9 +1,12 @@
 import 'package:auto_route/annotations.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_note_app/Widget/firebase_auth_manager.dart';
 import 'package:flutter_note_app/router/app_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import '../../../Widget/app_button.dart';
 import '../../../Widget/app_textfiled.dart';
 
@@ -20,6 +23,8 @@ class _SignupPageState extends State<SignupPage> {
 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+  ValueNotifier<bool> isLoading = ValueNotifier(false);
 
   @override
   void dispose() {
@@ -45,43 +50,9 @@ class _SignupPageState extends State<SignupPage> {
               const Text('Welcome to NotApp!', style: TextStyle(fontSize: 20)),
               40.verticalSpace,
               buildSignUpForm(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 40),
-                child: AppButton(
-                  title: "Sign Up",
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      print("Signup pressed");
-                    }
-                  },
-                ),
-              ),
+              buildSignUpButton(),
               10.verticalSpace,
-              RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: "Already have an account ? ",
-                      style: TextStyle(
-                        fontSize: 15.spMin,
-                        color: Colors.black,
-                      ),
-                    ),
-                    TextSpan(
-                      text: "Login",
-                      style: TextStyle(
-                        fontSize: 16.spMin,
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          context.router.push(LoginRoute());
-                        },
-                    ),
-                  ],
-                ),
-              ),
+              buildAlreadyHaveAccount()
             ],
           ),
         ),
@@ -128,6 +99,82 @@ class _SignupPageState extends State<SignupPage> {
               }
               return null;
             },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildSignUpButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 40),
+      child: ValueListenableBuilder(
+        valueListenable: isLoading,
+        builder: (BuildContext context, bool value, Widget? child) {
+          return AppButton(
+            isLoading: value,
+            title: "Sign Up",
+            onPressed: () async {
+              if (!_formKey.currentState!.validate()) return;
+
+              isLoading.value = true;
+
+              try {
+                final user = await FirebaseManager.instance.signUp(
+                  email: emailController.text,
+                  password: passwordController.text,
+                );
+
+                if (user != null) {
+                  debugPrint("user==> ${user}");
+                  // ✅ Signup success
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Signup successful")),
+                  );
+
+                  // Navigate to home / notes screen
+                  //  context.router.replace(const HomeRoute());
+                }
+              } on FirebaseAuthException catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(e.message ?? "Signup failed")),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Something went wrong")),
+                );
+              } finally {
+                isLoading.value = false;
+              }
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget buildAlreadyHaveAccount() {
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: "Already have an account ? ",
+            style: TextStyle(
+              fontSize: 15.spMin,
+              color: Colors.black,
+            ),
+          ),
+          TextSpan(
+            text: "Login",
+            style: TextStyle(
+              fontSize: 16.spMin,
+              color: Colors.blue,
+              fontWeight: FontWeight.bold,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                context.router.push(LoginRoute());
+              },
           ),
         ],
       ),

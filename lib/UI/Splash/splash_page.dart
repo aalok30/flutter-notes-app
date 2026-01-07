@@ -1,10 +1,8 @@
-
 import 'package:auto_route/annotations.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_note_app/router/app_router.dart';
-
 
 @RoutePage()
 class SplashPage extends StatefulWidget {
@@ -19,8 +17,8 @@ class _SplashPageState extends State<SplashPage> {
   void initState() {
     Future.delayed(
       Duration(milliseconds: 2640),
-          () {
-          context.router.push(SignupRoute());
+      () {
+        context.router.push(SignupRoute());
       },
     );
 
@@ -36,7 +34,12 @@ class _SplashPageState extends State<SplashPage> {
       ),
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: Center(child: Text('Note App',style:TextStyle(fontSize: 30),),),
+        body: Center(
+          child: Text(
+            'Note App',
+            style: TextStyle(fontSize: 30),
+          ),
+        ),
       ),
     );
   }
